@@ -1,70 +1,36 @@
-# CS464 Assignment 01 · Omer Abdullah · BSCS25135
+# CS464 Assignment 02 · Omer Abdullah · BSCS25135
 
-## Game 1 · Subway Surfers City
-- **Store link:** https://play.google.com/store/apps/details?id=com.sybogames.subway.surfers.game&hl=en&pli=1
-- **Genre:** Endless Runner
-- **I played:** I played for 45 minutes and achieved my personal highest score of 883414.
 
-<p>
-<img src="Docs/game1/1.png" width="240">
-<img src="Docs/game1/2.png" width="240">
-<img src="Docs/game1/3.png" width="240">
-</p>
+- **Video:** https://drive.google.com/file/d/1yFtpo9TjgCE4adgG89BibpnSmfA4AMDA/view?usp=drive_link
+- **Input:** Legacy Input (Horizontal/Vertical, Space), with Active Input Handling set to Both
+- **Ground check:** Physics.CheckSphere at a Feet child, mask = Ground layer only, with a gizmo (green grounded, red airborne)
+- **Camera:** SmoothDamp (smoothTime 0.25 s) with look-ahead, in LateUpdate
+- **Juice:** Camera dip on landing, Ease.OutBack curve, started by the player's Landed event after more than 0.1 s in the air
 
-1. [M1, M2, M3] · Core gameplay like lane switching, jumping, sliding and collecting coins while avoiding obstacles.
-2. [M4, M5] · Hoverboard and power-ups during a run, showing how these abilities helps the player to survive and improve performance.
-3. [M6, M7] · High-score and/or progression screen showing the scoring system, missions and rewards etc that drives players to come back to the game.
+## Tuning
+| Setting | Value | Why this number |
+|---|---|---|
+| Speed | 5 m/s | because its a sweet spot between walking and not sprinting while being fast enough, easier to steer around abstacles etc |
+| Jump height | 1.8 m | i set my jump obstacles for this hence this number |
+| Time to apex | 0.61 s | √(2h/g) = √(2·1.8/9.81) |
+| Fall multiplier | 2.2× | Fall takes 0.41 s instead of 0.61 s, so the jump feels snappy; the apex stays the same |
+| Coyote time | 0.1 s | At 5 m/s that is 0.5 m past the edge of a floor |
+| Jump buffer | 0.12 s | At 5 m/s that is 0.6 m before landing, so a slightly early press still jumps |
+| Camera smoothing | 0.25 s | sweet spot again doesnt lag behind  |
+| Look-ahead | 0.35 s | At 5 m/s the camera aims 1.75 m ahead, so I see where I'm going |
 
-| # | Mechanic | Dynamic | Aesthetic | Bartle type |
-|---|---|---|---|---|
-| M1 | Lane switching | Player switches between three lanes to avoid trains and obstacles. | Challenge | Achiever |
-| M2 | Jumping and sliding | Player times jumps and slides to pass over or under obstacles. | Challenge, Sensation | Achiever |
-| M3 | Coin collection | Player takes risks and changes lanes to collect coins while also avoiding obstacles. | Achievement | Achiever |
-| M4 | Hoverboard | Player activates a hoverboard to gain temporary immunity and continue running after a collision. | Sensation, Challenge | Achiever |
-| M5 | Power-ups | Player uses power ups such as coin magnets, bubble gum, drones and other boosts to collect more rewards and improve a run. | Sensation | Achiever |
-| M6 | Scoring and multiplier | Player tries to achieve higher scores by surviving longer and increasing the score multiplier. | Achievement | Achiever |
-| M7 | Missions and progression | Player completes objectives and unlocks rewards, characters and additional content. | Achievement, Discovery | Explorer |
+## Four answers
+1. **The jump, in numbers.** v = √(2gh) = √(2·9.81·1.8) = 5.94 m/s, so on a 1 kg body jumpForce is 5.94 (m·v). It takes 0.61 s to reach the apex and about 0.41 s to fall back (2.2× gravity falling), so about 1.02 s in the air. At 5 m/s one jump carries me about 5.1 m. and it easily covers my widest gaps.
+2. **Update and FixedUpdate.** in Update i read the keys, build the camera-relative move vector, run the ground check, stamp the coyote and buffer timestamps, and queue the jump. in FixedUpdate i set rb.linearVelocity from the move vector, apply the queued jump once, and add extra fall gravity. if I swapped them, GetKeyDown would be missed on frames where FixedUpdate doesn't run (about two in three at 144 fps), so some jumps would be lost, and physics changes would run at the framrate.
+3. **Vector3.Dot.** My script doesnt call it yet, but it could in PlayerController's Update, right after building move from the camera's axes: float away = Vector3.Dot(move, forward);, where forward is the cameras flattened forward direction. The sign say which way im walking relative to the camera: positive means I'm walking away from the camera (W), negative means toward it (S), and zero mean sideways (A/D only). It's the same idea as the forward * v term in my movement line, which scale the camera's forward by how much W/S is presed.
+4. **The juice.** the camera dip uses Ease.OutBack over 0.35 s, which is about 21 frames at 60 fps. OutBack make the camera spring back past its rest position and settle. 0.35 s is long enough to see the overshoot but short enough to finish before my nxt jump.
 
-**Aesthetic profile:** Subway Surfers City primarily focuses on Challenge, Sensation and Achievement. Challenge comes from avoiding increasingly difficult placements of obstacles and reacting quickly. Sensation comes from fast-paced movement, colourful environments and exciting gameplay. Achievement comes from beating personal records, collecting coins and completing missions.
+## Levels
 
-**Player types**
-- Primary: Achiever (acting × world), because M3, M6 and M7 encourage collecting rewards, improving high scores and completing objectives.
-- Secondary: Explorer (interacting × world), because M7 encourages players to discover new content, districts, characters and gameplay features.
-
-## Game 2 · Plants vs Zombies 2
-- **Store link:** https://play.google.com/store/apps/details?id=com.ea.game.pvz2_row&hl=en
-- **Genre:** Tower Defense
-- **I played:** I played for 30 minutes. There is no traditional score system, but I am currently on Pirate Seas level 7.
-
-<p>
-<img src="Docs/game2/1.png" width="240">
-<img src="Docs/game2/2.png" width="240">
-<img src="Docs/game2/3.png" width="240">
-</p>
-
-1. [M1, M2, M3] · Core gameplay showing sun collection, plant selection and strategic placement of plants on the battlefield.
-2. [M4, M5] · Gameplay showing plant cooldowns and different zombie waves that challenge the player's defensive strategy.
-3. [M6, M7] · Plant Food ability orlevel progression screen showing special plant abilities and advancement through the game.
-
-| # | Mechanic | Dynamic | Aesthetic | Bartle type |
-|---|---|---|---|---|
-| M1 | Sun collection | Player collects sum from flower or floating sun to be able to buy plants. | Strategy, Achievement | Achiever |
-| M2 | Plant selection | Player chooses plants according to map layout type of zombies and power of plants. | Strategy, Challenge | Achiever |
-| M3 | Grid-based plant placement | Player strategically places plants to maximize the chance of killing the zombies. | Strategy | Achiever |
-| M4 | Plant cooldown | Player must wait for plants to be available to be planted again hence has to switch between plants in a wave to maximize kills. | Challenge | Achiever |
-| M5 | Zombie waves | Player adapts their defensive strategy as different types of zombies approach in waves. | Challenge, Tension | Achiever |
-| M6 | Plant Food | Player might use the leaf feature to accelerate the killing ability of a plant if he is loosing on some front. | Sensation, Power | Achiever |
-| M7 | Level progression | Player completes levels to unlock new plants, worlds and increasingly difficult challenges. | Achievement, Discovery | Explorer |
-
-**Aesthetic profile:** Plants vs Zombies 2 primarily focuses on Challenge, Strategy and Achievement. Challenge comes from defending against different zombie types and increasingly difficult waves. Strategy comes from managing limited resources and selecting the right plants and positions. Achievement comes from completing levels, unlocking plants and progressing through different worlds.
-
-**Player types**
-- Primary: Achiever (acting × world), because M1, M3, M5 and M7 reward efficient resource management, successful defence and completion of levels.
-- Secondary: Explorer (interacting × world), because M2 and M7 encourage experimenting with different plant combinations and discovering new plants and worlds.
-## Level blockouts
-| Level | Screenshot | Its idea | Wayfinding tool |
-|---|---|---|---|
-| Level01 | <img src="Docs/levels/level01.png" width="320"> |we have to dodge obstacles and reach the goal | there is a tall pillar that we can look from everywhere in the map and we can follow that to reach the goal|
-| Level02 | <img src="Docs/levels/level02.png" width="320"> |there is this maze with tiny obstacles and big ones too and objective is to reach the goal |wayfinding is same as before a tall pillar |
-| Level03 | <img src="Docs/levels/level03.png" width="320"> |a more complicated maze where it is more challenging to traverse |we have 2 wayfindings here 1 is the same tall pillar and the other is xp/coins which a player can follow to reveal the goal |
-| Level04 | <img src="Docs/levels/level04.png" width="320"> |this is filled with obstacles and we have to navigate thru them and reach the goal |this only uses xp/coins |
+| Level | What the controller must do there | What I changed for this jump |
+| --- | --- | --- |
+| Level01 | Dodge the obstacles and follow the tall pillar to the goal; jump over the 1.1 m low covers where the path is blocked | Nothing. The 1.8 m jump clear the 1.1 m covers and there are no gaps |
+| Level02 | Find a route through the maze past small and large obstacles to the goal; hop the 1.1 m low covers, walk around the 3 m walls | Nothing. The 3 m walls are ment to be walked around, not jumped |
+| Level03 | Navigate the more complicated maze, following the pillar and the coins to reveal and reach the goal | Nothing. Camera-relative movement and the follow camera was enough here |
+| Level04 | Weave through the obstacle field using only the coins as guidance, jumping the low covers | Nothing. The jump height already fit the obstacles |
+| Level05 | Same obstacle route as Level01 with a changed layou | Nothing. The 1.8 m jump clears everything it ask for |
